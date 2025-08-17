@@ -794,7 +794,7 @@ EnrichrDotPlot <- function(
   modules <- GetModules(seurat_obj, wgcna_name)
 
   # using all modules?
-  if(mods == 'all'){
+  if(length(mods)==1 && mods == 'all'){
     mods <- levels(modules$module)
     mods <- mods[mods != 'grey']
   }
@@ -819,9 +819,9 @@ EnrichrDotPlot <- function(
   }
 
   # get data to plot
-  top_terms <- enrichr_df %>%
-    subset(db == database & module %in% mods) %>%
-    group_by(module) %>%
+  enrichr_df <- enrichr_df %>%
+    subset(db == database & module %in% mods)
+  top_terms <- enrichr_df %>% group_by(module) %>%
     slice_max(order_by=Combined.Score, n=n_terms) %>% 
     .$Term
 
@@ -830,10 +830,10 @@ EnrichrDotPlot <- function(
   # sometimes top_n returns more than the desired number if there are ties. so here
   # we just randomly sample to break ties:
   if(break_ties){
-    plot_df <- do.call(rbind, lapply(plot_df %>% group_by(module) %>% group_split, function(x){x[sample(n_terms),]}))
+    plot_df <- do.call(rbind, lapply(plot_df %>% group_by(module) %>% group_split, function(x){x[sample(n_terms),] %>% dplyr::filter(!is.na(Term))}))
   }
 
-  plot_df <- plot_df %>% mutate(Term = stringr::str_replace(Term, " \\s*\\([^\\)]+\\)", "")) 
+  plot_df <- plot_df %>% dplyr::mutate(Term = stringr::str_replace(Term, " \\s*\\([^\\)]+\\)$", "")) 
   plot_df$Term <- wrapText(plot_df$Term, 45)
 
   # set modules factor and re-order:
@@ -841,7 +841,7 @@ EnrichrDotPlot <- function(
     as.character(plot_df$module),
     levels=levels(modules$module)
   )
-  plot_df <- arrange(plot_df, module)
+  plot_df <- dplyr::arrange(plot_df, module)
 
   # set Terms factor
   plot_df$Term <- factor(
@@ -855,7 +855,7 @@ EnrichrDotPlot <- function(
     plot_df$p <- plot_df$P.value
   }
 
-  max_p <- quantile(-log(plot_df$p), 0.95)
+  max_p <- quantile(-log(plot_df$p), 0.95, na.rm = TRUE)
 
   plot_df$logp <- -log(plot_df$p)
   plot_df$logp <- ifelse(plot_df$logp > max_p, max_p, plot_df$logp)
