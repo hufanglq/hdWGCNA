@@ -152,11 +152,7 @@ RegulonScores <- function(
     }
 
     # set up the lists
-    tfs_use <- unique(tf_regulons$tf)
-    target_genes <- lapply(tfs_use, function(cur_tf){
-        subset(tf_regulons, tf == cur_tf) %>% .$gene
-    })
-    names(target_genes) <- tfs_use
+    target_genes <- split(tf_regulons$gene, tf_regulons$tf)
 
     # use UCell to comptue the TF regulons cores
     regulon_scores <- UCell::AddModuleScore_UCell(
