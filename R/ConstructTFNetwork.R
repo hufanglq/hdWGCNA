@@ -45,7 +45,7 @@ ConstructTFNetwork <- function(
         stop('gene_name column missing in motif table (GetMotifs(seurat_obj)). Please add a column indicating the gene_name in the seurat_obj for each motif.' )
     }
 
-    check_xgboost2 <- startsWith(as.character(packageVersion('xgboost')), '2')
+    check_xgboost2 <- packageVersion('xgboost') > '2'
 
     # define XGBoost callback function based on the installed version, because between v1 and v2 they changed the names of some parameters
     if(is.null(callbacks)){
