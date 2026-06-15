@@ -425,7 +425,7 @@ MetacellsByGroups <- function(
 
   # remove NULL
   remove <- which(sapply(metacell_list, is.null))
-  if(length(remove) > 1){
+  if(length(remove) > 0){
     metacell_list <- metacell_list[-remove]
   }
 
